@@ -1,0 +1,10 @@
+__pycache__
+*.pyc
+.env
+
+# Arquivos de configuração
+*.cfg
+
+# env
+email_graph_env
+
