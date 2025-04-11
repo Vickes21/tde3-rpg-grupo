@@ -11,58 +11,80 @@ Uso:
     python eulerian_checker.py
 """
 
-from collections import defaultdict, Counter
+from collections import defaultdict, Counter, deque
 from email_graph import build_email_graph
 
-def check_eulerian(graph):
+
+def calculate_degrees(graph):
     """
-    Verifica se o grafo é Euleriano (possui um ciclo Euleriano).
-    
-    Para um grafo direcionado ser Euleriano:
-    1. Todos os vértices com grau não-zero devem pertencer a um único componente fortemente conectado
-    2. Para cada vertice, o grau de entrada deve ser igual ao grau de saída
+    Calcula os graus de entrada e saída para todos os vértices do grafo.
     
     Args:
         graph: O grafo representado como uma lista de adjacência
         
     Returns:
-        bool: True se o grafo é Euleriano, False caso contrário
-        list: Lista de condições que não foram satisfeitas (vazia se Euleriano)
+        tuple: (active_vertices, in_degrees, out_degrees)
+            - active_vertices: conjunto de vértices com grau não-zero
+            - in_degrees: dicionário com graus de entrada
+            - out_degrees: dicionário com graus de saída
     """
-    # Obtém todos os vértices que têm arestas de entrada ou saída
     active_vertices = set()
-    
-    # Calcula o grau de entrada para cada vertice
     in_degrees = Counter()
+    out_degrees = {}
+    
+    # Calcula graus de entrada e identifica vértices ativos
     for sender in graph:
         active_vertices.add(sender)
         for recipient, weight in graph[sender].items():
             active_vertices.add(recipient)
             in_degrees[recipient] += weight
     
-    # Calcula o grau de saída para cada vertice
-    out_degrees = {}
+    # Calcula graus de saída
     for sender in graph:
         out_degrees[sender] = sum(graph[sender].values())
     
-    # Verifica condição 2: grau de entrada igual ao grau de saída para todos os vértices
-    unbalanced_vertices = []
+    return active_vertices, in_degrees, out_degrees
+
+
+def find_unbalanced_vertices(active_vertices, in_degrees, out_degrees):
+    """
+    Encontra vértices onde o grau de entrada é diferente do grau de saída.
+    
+    Args:
+        active_vertices: conjunto de vértices com grau não-zero
+        in_degrees: dicionário com graus de entrada
+        out_degrees: dicionário com graus de saída
+        
+    Returns:
+        list: Lista de tuplas (node, in_degree, out_degree) para vértices desbalanceados
+    """
+    unbalanced = []
     for node in active_vertices:
         in_degree = in_degrees[node]
         out_degree = out_degrees.get(node, 0)
         
         if in_degree != out_degree:
-            unbalanced_vertices.append((node, in_degree, out_degree))
+            unbalanced.append((node, in_degree, out_degree))
     
-    # Verifica condição 1: todos os vértices com grau não-zero pertencem a um único componente fortemente conectado
-    # Usaremos o algoritmo de Kosaraju para encontrar componentes fortemente conectados
+    return unbalanced
+
+
+def find_strongly_connected_components(graph, active_vertices):
+    """
+    Encontra componentes fortemente conectados usando o algoritmo de Kosaraju.
     
+    Args:
+        graph: O grafo representado como uma lista de adjacência
+        active_vertices: conjunto de vértices com grau não-zero
+        
+    Returns:
+        list: Lista de componentes fortemente conectados (cada componente é uma lista de vértices)
+    """
     # Passo 1: Realiza DFS e armazena vértices em ordem de tempo de finalização
     visited = set()
     finishing_order = []
     
     def dfs_first_pass(node):
-        """Realiza a primeira passagem DFS para o algoritmo de Kosaraju."""
         visited.add(node)
         for neighbor in graph.get(node, {}):
             if neighbor not in visited:
@@ -81,11 +103,10 @@ def check_eulerian(graph):
             transposed_graph[recipient][sender] = weight
     
     # Passo 3: Realiza DFS no grafo transposto em ordem de tempo de finalização
-    visited = set()
+    visited.clear()
     components = []
     
     def dfs_second_pass(node, component):
-        """Realiza a segunda passagem DFS para o algoritmo de Kosaraju."""
         visited.add(node)
         component.append(node)
         for neighbor in transposed_graph.get(node, {}):
@@ -99,22 +120,62 @@ def check_eulerian(graph):
             dfs_second_pass(node, component)
             components.append(component)
     
-    # Verifica se há mais de um componente fortemente conectado com vértices de grau não-zero
+    return components
+
+
+def filter_non_zero_components(components, in_degrees, out_degrees):
+    """
+    Filtra componentes que contêm pelo menos um vértice com grau não-zero.
+    
+    Args:
+        components: Lista de componentes fortemente conectados
+        in_degrees: dicionário com graus de entrada
+        out_degrees: dicionário com graus de saída
+        
+    Returns:
+        list: Lista de componentes com pelo menos um vértice de grau não-zero
+    """
     non_zero_components = []
+    
     for component in components:
-        has_non_zero = False
         for node in component:
             if in_degrees[node] > 0 or out_degrees.get(node, 0) > 0:
-                has_non_zero = True
+                non_zero_components.append(component)
                 break
-        if has_non_zero:
-            non_zero_components.append(component)
+    
+    return non_zero_components
+
+
+def check_eulerian(graph):
+    """
+    Verifica se o grafo é Euleriano (possui um ciclo Euleriano).
+    
+    Para um grafo direcionado ser Euleriano:
+    1. Todos os vértices com grau não-zero devem pertencer a um único componente fortemente conectado
+    2. Para cada vertice, o grau de entrada deve ser igual ao grau de saída
+    
+    Args:
+        graph: O grafo representado como uma lista de adjacência
+        
+    Returns:
+        bool: True se o grafo é Euleriano, False caso contrário
+        list: Lista de condições que não foram satisfeitas (vazia se Euleriano)
+    """
+    # Calcula graus e identifica vértices ativos
+    active_vertices, in_degrees, out_degrees = calculate_degrees(graph)
+    
+    # Verifica condição 2: grau de entrada igual ao grau de saída
+    unbalanced_vertices = find_unbalanced_vertices(active_vertices, in_degrees, out_degrees)
+    
+    # Verifica condição 1: todos os vértices com grau não-zero pertencem a um único componente
+    components = find_strongly_connected_components(graph, active_vertices)
+    non_zero_components = filter_non_zero_components(components, in_degrees, out_degrees)
     
     # Prepara a lista de condições não satisfeitas
     unsatisfied_conditions = []
     
     if len(non_zero_components) > 1:
-        unsatisfied_conditions.append(f"O grafo tem {len(non_zero_components)} componentes fortemente conectados em vez de 1")
+        unsatisfied_conditions.append(f"O grafo possui {len(non_zero_components)} componentes fortemente conectados, quando deveria ter apenas 1 para ser Euleriano. Isso significa que existem grupos de vértices isolados entre si, impossibilitando um ciclo completo.")
     
     if unbalanced_vertices:
         unsatisfied_conditions.append(f"Existem {len(unbalanced_vertices)} vértices onde grau de entrada != grau de saída")
@@ -125,6 +186,7 @@ def check_eulerian(graph):
             unsatisfied_conditions.append(f"  ... e mais {len(unbalanced_vertices) - 5} vértices desbalanceados")
     
     return len(unsatisfied_conditions) == 0, unsatisfied_conditions
+
 
 def check_eulerian_cycle(graph):
     """
@@ -157,6 +219,7 @@ def check_eulerian_cycle(graph):
     
     return is_eulerian, unsatisfied_conditions
 
+
 def main():
     """Função principal para executar o verificador de ciclo Euleriano."""
     # Constrói o grafo de emails
@@ -169,6 +232,7 @@ def main():
         check_eulerian_cycle(graph)
     else:
         print("Falha ao construir o grafo.")
+
 
 if __name__ == "__main__":
     main()
