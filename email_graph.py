@@ -29,8 +29,13 @@ def extrair_enderecos_email(linha):
         list: Lista de endereços de email encontrados na linha
     """
     # Expressão regular para encontrar endereços de email
-    padrao_email = r'[\w\.-]+@[\w\.-]+'
-    return re.findall(padrao_email, linha)
+    padrao_email = r'[\w][\w\.-]*@[\w\.-]+'
+    emails = re.findall(padrao_email, linha)
+    
+    # Filtrar emails que possam ter começado com um ponto (caso a regex ainda capture algum)
+    emails_validos = [email for email in emails if not email.startswith('.')]
+    
+    return emails_validos
 
 def processar_arquivo_email(caminho_arquivo):
     """
@@ -170,7 +175,7 @@ def save_adjacency_list(grafo, nome_arquivo):
         
         # Ordena os remetentes em ordem alfabética para melhorar a legibilidade
         for remetente in sorted(grafo.keys()):
-            arquivo.write(f"Nó: {remetente}\n")
+            arquivo.write(f"Node: {remetente}\n")
             
             # Ordena os destinatários primeiro por peso (decrescente) e depois alfabeticamente
             destinatarios_ordenados = sorted(
