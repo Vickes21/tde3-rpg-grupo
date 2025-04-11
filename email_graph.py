@@ -18,7 +18,7 @@ import heapq
 # Define o diretório do conjunto de dados
 DATASET_DIR = "/home/hower/studies/2025/rpg/tde1-grupos/dataset"
 
-def extrair_enderecos_email(linha):
+def extract_email_addresses(line):
     """
     Extrai endereços de email de uma linha de texto.
     
@@ -29,15 +29,15 @@ def extrair_enderecos_email(linha):
         list: Lista de endereços de email encontrados na linha
     """
     # Expressão regular para encontrar endereços de email
-    padrao_email = r'[\w][\w\.-]*@[\w\.-]+'
-    emails = re.findall(padrao_email, linha)
+    email_pattern = r'[\w][\w\.-]*@[\w\.-]+'
+    emails = re.findall(email_pattern, line)
     
     # Filtrar emails que possam ter começado com um ponto (caso a regex ainda capture algum)
-    emails_validos = [email for email in emails if not email.startswith('.')]
+    valid_emails = [email for email in emails if not email.startswith('.')]
     
-    return emails_validos
+    return valid_emails
 
-def processar_arquivo_email(caminho_arquivo):
+def process_email_file(file_path):
     """
     Processa um único arquivo de email e extrai o remetente e os destinatários.
     
@@ -49,38 +49,38 @@ def processar_arquivo_email(caminho_arquivo):
             - remetente é o endereço de email do remetente
             - destinatários é uma lista de endereços de email dos destinatários
     """
-    remetente = None
-    destinatarios = []
+    sender = None
+    recipients = []
     
     try:
         # Abre o arquivo para leitura
-        with open(caminho_arquivo, 'r', encoding='latin1') as arquivo:
-            for linha in arquivo:
+        with open(file_path, 'r', encoding='latin1') as file:
+            for line in file:
                 # Remove espaços em branco no início e no final da linha
-                linha = linha.strip()
+                line = line.strip()
                 
                 # Extrai o remetente
-                if linha.startswith('From:'):
-                    emails_remetente = extrair_enderecos_email(linha)
-                    if emails_remetente:
-                        remetente = emails_remetente[0].lower()
+                if line.startswith('From:'):
+                    sender_emails = extract_email_addresses(line)
+                    if sender_emails:
+                        sender = sender_emails[0].lower()
                 
                 # Extrai os destinatários (To, Cc, Bcc)
-                elif linha.startswith('To:'):
+                elif line.startswith('To:'):
                     # Extrai os endereços de email
-                    emails_para = extrair_enderecos_email(linha)
+                    to_emails = extract_email_addresses(line)
                     # Adiciona os endereços de email à lista de destinatários
-                    destinatarios.extend([email.lower() for email in emails_para])
+                    recipients.extend([email.lower() for email in to_emails])
                 
                 # Pula o resto do arquivo uma vez que processamos os cabeçalhos
-                if linha == '':
+                if line == '':
                     break
     
     except Exception as e:
-        print(f"Erro ao processar o arquivo {caminho_arquivo}: {e}")
+        print(f"Erro ao processar o arquivo {file_path}: {e}")
         return None, []
     
-    return remetente, destinatarios
+    return sender, recipients
 
 def build_email_graph():
     """
@@ -92,70 +92,70 @@ def build_email_graph():
             - todos_emails é um conjunto de todos os endereços de email (vértices)
     """
     # Grafo representado como uma lista de adjacência com pesos
-    grafo = defaultdict(lambda: defaultdict(int))
+    graph = defaultdict(lambda: defaultdict(int))
     
     # Conjunto para manter o controle de todos os endereços de email (vértices)
-    todos_emails = set()
+    all_emails = set()
     
     # Contador para acompanhamento do progresso
-    total_emails_processados = 0
+    total_emails_processed = 0
     
     # Processa todos os diretórios nomeados
-    for diretorio_nomeado in os.listdir(DATASET_DIR):
+    for named_directory in os.listdir(DATASET_DIR):
         # Cria o caminho completo para o diretório
-        caminho_nomeado = os.path.join(DATASET_DIR, diretorio_nomeado)
+        named_path = os.path.join(DATASET_DIR, named_directory)
         
         # Verifica se o caminho é um diretório
-        if not os.path.isdir(caminho_nomeado):
+        if not os.path.isdir(named_path):
             # Se não for, pula para o próximo
             continue
         
-        print(f"Processando diretório nomeado: {diretorio_nomeado}")
+        print(f"Processando diretório nomeado: {named_directory}")
         
         # Processa todas as pastas de email para este diretório nomeado
-        for pasta in os.listdir(caminho_nomeado):
+        for folder in os.listdir(named_path):
             # Cria o caminho completo para a pasta
-            caminho_pasta = os.path.join(caminho_nomeado, pasta)
+            folder_path = os.path.join(named_path, folder)
             
             # Verifica se o caminho é uma pasta
-            if not os.path.isdir(caminho_pasta):
+            if not os.path.isdir(folder_path):
                 # Se não for, pula para o próximo
                 continue
             
             # Processa todos os arquivos de email nesta pasta
-            for arquivo_email in glob.glob(os.path.join(caminho_pasta, '*')):
+            for email_file in glob.glob(os.path.join(folder_path, '*')):
                 # Verifica se o caminho é um arquivo
-                if os.path.isfile(arquivo_email):
+                if os.path.isfile(email_file):
                     # Processa o arquivo de email
-                    remetente, destinatarios = processar_arquivo_email(arquivo_email)
+                    sender, recipients = process_email_file(email_file)
                     
                     # Adiciona o remetente ao conjunto de todos os emails, se existir
-                    if remetente:
-                        todos_emails.add(remetente)
+                    if sender:
+                        all_emails.add(sender)
                     
                     # Adiciona os destinatários ao conjunto de todos os emails, se existirem
-                    if destinatarios:
-                        todos_emails.update(destinatarios)
+                    if recipients:
+                        all_emails.update(recipients)
                     
                     # Atualiza o grafo: incrementa o peso para cada aresta remetente->destinatário
                     # Apenas se tanto o remetente quanto os destinatários existirem
-                    if remetente and destinatarios:
-                        for destinatario in destinatarios:
+                    if sender and recipients:
+                        for recipient in recipients:
                             # Adiciona aresta com peso 1 entre o remetente e o destinatário
-                            grafo[remetente][destinatario] += 1
+                            graph[sender][recipient] += 1
                     
-                    total_emails_processados += 1
+                    total_emails_processed += 1
                     
                     # Imprime o progresso a cada 1000 emails
-                    if total_emails_processados % 1000 == 0:
-                        print(f"Processados {total_emails_processados} emails...")
+                    if total_emails_processed % 1000 == 0:
+                        print(f"Processados {total_emails_processed} emails...")
     
-    print(f"Total de emails processados: {total_emails_processados}")
-    print(f"Total de endereços de email únicos: {len(todos_emails)}")
+    print(f"Total de emails processados: {total_emails_processed}")
+    print(f"Total de endereços de email únicos: {len(all_emails)}")
     
-    return grafo, todos_emails
+    return graph, all_emails
 
-def save_adjacency_list(grafo, nome_arquivo):
+def save_adjacency_list(graph, file_name):
     """
     Salva o grafo como uma lista de adjacência em um arquivo de texto.
     
@@ -168,29 +168,29 @@ def save_adjacency_list(grafo, nome_arquivo):
         nome_arquivo: Caminho do arquivo onde a lista de adjacência será salva.
     """
     # Abre o arquivo no modo de escrita usando um gerenciador de contexto (with)
-    with open(nome_arquivo, 'w') as arquivo:
+    with open(file_name, 'w') as file:
         # Escreve o cabeçalho do arquivo para documentar o formato
-        arquivo.write("# Lista de Adjacência do Grafo de Email\n")
-        arquivo.write("# Formato: remetente -> destinatário: peso\n\n")
+        file.write("# Lista de Adjacência do Grafo de Email\n")
+        file.write("# Formato: remetente -> destinatário: peso\n\n")
         
         # Ordena os remetentes em ordem alfabética para melhorar a legibilidade
-        for remetente in sorted(grafo.keys()):
-            arquivo.write(f"Node: {remetente}\n")
+        for sender in sorted(graph.keys()):
+            file.write(f"Node: {sender}\n")
             
             # Ordena os destinatários primeiro por peso (decrescente) e depois alfabeticamente
-            destinatarios_ordenados = sorted(
-                grafo[remetente].items(),
+            sorted_recipients = sorted(
+                graph[sender].items(),
                 key=lambda x: (-x[1], x[0])  # Ordena por peso (decrescente) e depois por destinatário (crescente)
             )
             
             # Escreve cada conexão com seu respectivo peso
-            for destinatario, peso in destinatarios_ordenados:
-                arquivo.write(f"  -> {destinatario}: {peso}\n")
+            for recipient, weight in sorted_recipients:
+                file.write(f"  -> {recipient}: {weight}\n")
             
             # Adiciona uma linha em branco entre diferentes remetentes para melhor organização
-            arquivo.write("\n")
+            file.write("\n")
 
-def get_graph_order(grafo, todos_emails):
+def get_graph_order(graph, all_emails):
     """
     Obtém o número de vértices no grafo (ordem).
     
@@ -203,9 +203,9 @@ def get_graph_order(grafo, todos_emails):
     """
     # A ordem do grafo é o número de vértices
     # Isso inclui todos os endereços de email, mesmo aqueles que não aparecem no grafo
-    return len(todos_emails)
+    return len(all_emails)
 
-def get_graph_size(grafo):
+def get_graph_size(graph):
     """
     Obtém o número de arestas no grafo (tamanho).
     
@@ -217,12 +217,12 @@ def get_graph_size(grafo):
     """
     # O tamanho do grafo é o número de arestas
     # Contamos todas as conexões no grafo
-    tamanho = 0
-    for remetente in grafo:
-        tamanho += len(grafo[remetente])
-    return tamanho
+    size = 0
+    for sender in graph:
+        size += len(graph[sender])
+    return size
 
-def get_isolated_vertices(grafo, todos_emails):
+def get_isolated_vertices(graph, all_emails):
     """
     Obtém o número de vértices isolados no grafo.
     Um vertice isolado não tem arestas de entrada ou saída.
@@ -237,19 +237,19 @@ def get_isolated_vertices(grafo, todos_emails):
             - vertices_isolados é um conjunto de vértices isolados
     """
     # Encontra todos os vértices que têm arestas de entrada ou saída
-    vertices_com_arestas = set(grafo.keys())  # Vértices com arestas de saída
+    vertices_with_edges = set(graph.keys())  # Vértices com arestas de saída
     
     # Adiciona vértices com arestas de entrada
-    for remetente in grafo:
-        for destinatario in grafo[remetente]:
-            vertices_com_arestas.add(destinatario)
+    for sender in graph:
+        for recipient in graph[sender]:
+            vertices_with_edges.add(recipient)
     
     # Os vértices isolados são aqueles que não têm arestas de entrada ou saída
-    vertices_isolados = todos_emails - vertices_com_arestas
+    isolated_vertices = all_emails - vertices_with_edges
     
-    return len(vertices_isolados), vertices_isolados
+    return len(isolated_vertices), isolated_vertices
 
-def get_top_out_degrees(grafo, n=20):
+def get_top_out_degrees(graph, n=20):
     """
     Obtém os N vértices com o maior grau de saída.
     O grau de saída é o número de arestas de saída de um vertice.
@@ -262,17 +262,17 @@ def get_top_out_degrees(grafo, n=20):
         list: Lista de tuplas (vertice, grau_saida) ordenada por grau_saida em ordem decrescente
     """
     # Calcula o grau de saída para cada vertice
-    graus_saida = {}
-    for remetente in grafo:
-        graus_saida[remetente] = len(grafo[remetente])
+    out_degrees = {}
+    for sender in graph:
+        out_degrees[sender] = len(graph[sender])
     
     # Ordena os vertices por grau de saída em ordem decrescente
-    top_graus_saida = sorted(graus_saida.items(), key=lambda x: (-x[1], x[0]))
+    top_out_degrees = sorted(out_degrees.items(), key=lambda x: (-x[1], x[0]))
     
     # Retorna os N principais
-    return top_graus_saida[:n]
+    return top_out_degrees[:n]
 
-def get_top_in_degrees(grafo, n=20):
+def get_top_in_degrees(graph, n=20):
     """
     Obtém os N vértices com o maior grau de entrada.
     O grau de entrada é o número de arestas de entrada para um vertice.
@@ -285,18 +285,18 @@ def get_top_in_degrees(grafo, n=20):
         list: Lista de tuplas (vertice, grau_entrada) ordenada por grau_entrada em ordem decrescente
     """
     # Calcula o grau de entrada para cada vertice
-    graus_entrada = Counter()
-    for remetente in grafo:
-        for destinatario in grafo[remetente]:
-            graus_entrada[destinatario] += 1
+    in_degrees = Counter()
+    for sender in graph:
+        for recipient in graph[sender]:
+            in_degrees[recipient] += 1
     
     # Ordena os vertices por grau de entrada em ordem decrescente
-    top_graus_entrada = sorted(graus_entrada.items(), key=lambda x: (-x[1], x[0]))
+    top_in_degrees = sorted(in_degrees.items(), key=lambda x: (-x[1], x[0]))
     
     # Retorna os N principais
-    return top_graus_entrada[:n]
+    return top_in_degrees[:n]
 
-def nodes_within_distance(grafo, no_inicial, distancia_maxima):
+def nodes_within_distance(graph, start_node, max_distance):
     """
     Encontra todos os vertices que estão dentro de uma distância especificada a partir de um vertice inicial.
     Usa o algoritmo de Dijkstra para encontrar os caminhos mais curtos.
@@ -311,40 +311,40 @@ def nodes_within_distance(grafo, no_inicial, distancia_maxima):
               Inclui apenas vertices dentro da distancia_maxima
     """
     # Inicializa distâncias com infinito para todos os vertices
-    distancias = {no_inicial: 0}
+    distances = {start_node: 0}
     
     # Fila de prioridade para o algoritmo de Dijkstra
     # Cada entrada é (distância, vertice)
-    fila_prioridade = [(0, no_inicial)]
+    priority_queue = [(0, start_node)]
     
     # vertices dentro da distância máxima
-    nos_dentro_distancia = {}
+    nodes_within_dist = {}
     
     # Processa vertices em ordem crescente de distância
-    while fila_prioridade:
+    while priority_queue:
         # Obtém o vertice com a menor distância
-        distancia_atual, no_atual = heapq.heappop(fila_prioridade)
+        current_distance, current_node = heapq.heappop(priority_queue)
         
         # Se já encontramos um caminho mais curto para este vertice, ignoramos
-        if no_atual in nos_dentro_distancia:
+        if current_node in nodes_within_dist:
             continue
         
         # Adiciona este vertice ao resultado se estiver dentro da distância máxima
-        if distancia_atual <= distancia_maxima:
-            nos_dentro_distancia[no_atual] = distancia_atual
+        if current_distance <= max_distance:
+            nodes_within_dist[current_node] = current_distance
         else:
             # Se a distância atual exceder a distância máxima, podemos parar
             # porque todos os vertices subsequentes na fila de prioridade terão distâncias ainda maiores
             break
         
         # Verifica todos os vizinhos do vertice atual
-        for vizinho, peso in grafo.get(no_atual, {}).items():
+        for neighbor, weight in graph.get(current_node, {}).items():
             # Calcula a distância para o vizinho através do vertice atual
-            distancia = distancia_atual + peso
+            distance = current_distance + weight
             
             # Se o vizinho ainda não foi processado e a distância está dentro do limite
-            if vizinho not in nos_dentro_distancia and distancia <= distancia_maxima:
+            if neighbor not in nodes_within_dist and distance <= max_distance:
                 # Adiciona o vizinho à fila de prioridade
-                heapq.heappush(fila_prioridade, (distancia, vizinho))
+                heapq.heappush(priority_queue, (distance, neighbor))
     
-    return nos_dentro_distancia
+    return nodes_within_dist

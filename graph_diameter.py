@@ -14,7 +14,7 @@ import time
 import heapq
 from email_graph import build_email_graph
 
-def dijkstra_com_caminho(grafo, no_inicial):
+def dijkstra_with_path(graph, start_node):
     """
     Executa o algoritmo de Dijkstra para encontrar os caminhos mais curtos do no_inicial para todos os outros vertices.
     Esta versão também mantém o registro dos caminhos reais.
@@ -29,48 +29,48 @@ def dijkstra_com_caminho(grafo, no_inicial):
             - caminhos é um dicionário mapeando vertice -> lista de vertices representando o caminho mais curto
     """
     # Obtém todos os vertices no grafo, incluindo aqueles que aparecem apenas como vizinhos
-    todos_nos = set(grafo.keys())
-    for no in grafo:
-        for vizinho in grafo[no]:
-            todos_nos.add(vizinho)
+    all_nodes = set(graph.keys())
+    for node in graph:
+        for neighbor in graph[node]:
+            all_nodes.add(neighbor)
     
     # Inicializa distâncias com infinito para todos os vertices, exceto o vertice inicial
-    distancias = {no: float('infinity') for no in todos_nos}
-    distancias[no_inicial] = 0
+    distances = {node: float('infinity') for node in all_nodes}
+    distances[start_node] = 0
     
     # Inicializa dicionário de caminhos para armazenar o caminho mais curto para cada vertice
-    caminhos = {no: [] for no in todos_nos}
-    caminhos[no_inicial] = [no_inicial]
+    paths = {node: [] for node in all_nodes}
+    paths[start_node] = [start_node]
     
     # Fila de prioridade para o algoritmo de Dijkstra
     # Cada entrada é (distância, vertice)
-    fila_prioridade = [(0, no_inicial)]
+    priority_queue = [(0, start_node)]
     
     # Processa os vertices em ordem crescente de distância
-    while fila_prioridade:
+    while priority_queue:
         # Obtém o vertice com a menor distância
-        distancia_atual, no_atual = heapq.heappop(fila_prioridade)
+        current_distance, current_node = heapq.heappop(priority_queue)
         
         # Se já encontramos um caminho mais curto para este vertice, ignoramos
-        if distancia_atual > distancias[no_atual]:
+        if current_distance > distances[current_node]:
             continue
         
         # Verifica todos os vizinhos do vertice atual
-        for vizinho, peso in grafo.get(no_atual, {}).items():
+        for neighbor, weight in graph.get(current_node, {}).items():
             # Calcula a distância para o vizinho através do vertice atual
-            distancia = distancia_atual + peso
+            distance = current_distance + weight
             
             # Se encontramos um caminho mais curto para o vizinho, atualizamos
-            if distancia < distancias[vizinho]:
-                distancias[vizinho] = distancia
+            if distance < distances[neighbor]:
+                distances[neighbor] = distance
                 # Atualiza o caminho para o vizinho
-                caminhos[vizinho] = caminhos[no_atual] + [vizinho]
+                paths[neighbor] = paths[current_node] + [neighbor]
                 # Adiciona o vizinho à fila de prioridade
-                heapq.heappush(fila_prioridade, (distancia, vizinho))
+                heapq.heappush(priority_queue, (distance, neighbor))
     
-    return distancias, caminhos
+    return distances, paths
 
-def calcular_diametro_grafo(grafo):
+def calculate_graph_diameter(graph):
     """
     Calcula o diâmetro do grafo, que é o caminho mais longo entre
     qualquer par de vértices.
@@ -85,57 +85,57 @@ def calcular_diametro_grafo(grafo):
             - origem é o vertice inicial do caminho
             - destino é o vertice final do caminho
     """
-    tempo_inicio = time.time()
+    start_time = time.time()
     
     # Inicializa variáveis para rastrear a distância máxima e o caminho correspondente
-    distancia_maxima = 0
-    caminho_maximo = []
-    origem_maxima = None
-    destino_maximo = None
+    max_distance = 0
+    max_path = []
+    max_source = None
+    max_target = None
     
     # Contador para acompanhamento do progresso
-    total_nos = len(grafo)
-    nos_processados = 0
+    total_nodes = len(graph)
+    processed_nodes = 0
     
-    print(f"Calculando diâmetro para um grafo com {total_nos} vertices...")
+    print(f"Calculando diâmetro para um grafo com {total_nodes} vertices...")
     
     # Para cada vertice no grafo, encontra os caminhos mais curtos para todos os outros vertices
-    for origem in grafo:
+    for source in graph:
         # Pula vertices sem arestas de saída
-        if not grafo[origem]:
-            nos_processados += 1
+        if not graph[source]:
+            processed_nodes += 1
             continue
             
         # Encontra os caminhos mais curtos desta origem para todos os outros vertices
-        distancias, caminhos = dijkstra_com_caminho(grafo, origem)
+        distances, paths = dijkstra_with_path(graph, source)
         
         # Encontra a distância finita máxima a partir desta origem
-        for destino, distancia in distancias.items():
+        for target, distance in distances.items():
             # Pula vertices inalcançáveis (distância infinita) e auto-loops
-            if distancia == float('infinity') or origem == destino:
+            if distance == float('infinity') or source == target:
                 continue
                 
             # Se esta distância for maior que nosso máximo atual, atualizamos
-            if distancia > distancia_maxima:
-                distancia_maxima = distancia
-                caminho_maximo = caminhos[destino]
-                origem_maxima = origem
-                destino_maximo = destino
+            if distance > max_distance:
+                max_distance = distance
+                max_path = paths[target]
+                max_source = source
+                max_target = target
         
         # Atualiza o progresso
-        nos_processados += 1
-        if nos_processados % 10 == 0 or nos_processados == total_nos:
-            tempo_decorrido = time.time() - tempo_inicio
-            print(f"Processados {nos_processados}/{total_nos} vertices ({nos_processados/total_nos*100:.1f}%) - Tempo decorrido: {tempo_decorrido:.2f}s")
+        processed_nodes += 1
+        if processed_nodes % 10 == 0 or processed_nodes == total_nodes:
+            elapsed_time = time.time() - start_time
+            print(f"Processados {processed_nodes}/{total_nodes} vertices ({processed_nodes/total_nodes*100:.1f}%) - Tempo decorrido: {elapsed_time:.2f}s")
     
-    tempo_fim = time.time()
-    tempo_execucao = tempo_fim - tempo_inicio
+    end_time = time.time()
+    execution_time = end_time - start_time
     
-    print(f"\nCálculo do diâmetro concluído em {tempo_execucao:.2f} segundos")
+    print(f"\nCálculo do diâmetro concluído em {execution_time:.2f} segundos")
     
-    return distancia_maxima, caminho_maximo, origem_maxima, destino_maximo
+    return max_distance, max_path, max_source, max_target
 
-def imprimir_resultados_diametro(diametro, caminho, origem, destino, tempo_execucao, grafo):
+def print_diameter_results(diameter, path, source, target, execution_time, graph):
     """
     Imprime os resultados do cálculo do diâmetro.
     
@@ -150,20 +150,20 @@ def imprimir_resultados_diametro(diametro, caminho, origem, destino, tempo_execu
     print("\n" + "="*80)
     print(f"RESULTADOS DO DIÂMETRO DO GRAFO")
     print("="*80)
-    print(f"Diâmetro: {diametro}")
-    print(f"vertice de origem: {origem}")
-    print(f"vertice de destino: {destino}")
-    print(f"Comprimento do caminho: {len(caminho)} vertices")
-    print(f"Tempo de execução: {tempo_execucao:.2f} segundos")
+    print(f"Diâmetro: {diameter}")
+    print(f"vertice de origem: {source}")
+    print(f"vertice de destino: {target}")
+    print(f"Comprimento do caminho: {len(path)} vertices")
+    print(f"Tempo de execução: {execution_time:.2f} segundos")
     print("\nCaminho:")
     print("-"*80)
     
     # Imprime o caminho com os pesos das arestas
-    for i in range(len(caminho) - 1):
-        atual = caminho[i]
-        proximo = caminho[i+1]
-        peso = grafo[atual][proximo]
-        print(f"{i+1}. {atual} -> {proximo} (peso: {peso})")
+    for i in range(len(path) - 1):
+        current = path[i]
+        next_node = path[i+1]
+        weight = graph[current][next_node]
+        print(f"{i+1}. {current} -> {next_node} (peso: {weight})")
     
     print("="*80)
 
@@ -171,21 +171,21 @@ def main():
     """
     Função principal para executar o calculador de diâmetro do grafo.
     """
-    tempo_inicio = time.time()
+    start_time = time.time()
     
     # Constrói o grafo de emails
     print("Construindo grafo de emails...")
-    grafo, todos_emails = build_email_graph()
+    graph, all_emails = build_email_graph()
     
     # Calcula o diâmetro do grafo
     print("Calculando diâmetro do grafo...")
-    diametro, caminho, origem, destino = calcular_diametro_grafo(grafo)
+    diameter, path, source, target = calculate_graph_diameter(graph)
     
     # Calcula o tempo de execução
-    tempo_execucao = time.time() - tempo_inicio
+    execution_time = time.time() - start_time
     
     # Imprime os resultados
-    imprimir_resultados_diametro(diametro, caminho, origem, destino, tempo_execucao, grafo)
+    print_diameter_results(diameter, path, source, target, execution_time, graph)
 
 if __name__ == "__main__":
     main()

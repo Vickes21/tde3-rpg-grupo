@@ -19,45 +19,45 @@ from email_graph import (
     get_top_in_degrees
 )
 
-def verificar_ordem_grafo(grafo, todos_emails):
+def check_graph_order(graph, all_emails):
     """
     Verifica a ordem do grafo (número de vértices) usando múltiplos métodos.
     
     Args:
-        grafo: O grafo representado como uma lista de adjacência
-        todos_emails: Conjunto de todos os endereços de email no conjunto de dados
+        graph: O grafo representado como uma lista de adjacência
+        all_emails: Conjunto de todos os endereços de email no conjunto de dados
         
     Returns:
         dict: Dicionário com diferentes contagens de vértices para comparação
     """
     # Método 1: Usando o conjunto todos_emails
-    ordem_de_todos_emails = len(todos_emails)
+    order_from_all_emails = len(all_emails)
     
     # Método 2: Conta remetentes e destinatários únicos
-    remetentes_unicos = set(grafo.keys())
-    destinatarios_unicos = set()
-    for remetente in grafo:
-        for destinatario in grafo[remetente]:
-            destinatarios_unicos.add(destinatario)
+    unique_senders = set(graph.keys())
+    unique_recipients = set()
+    for sender in graph:
+        for recipient in graph[sender]:
+            unique_recipients.add(recipient)
     
-    vertices_unicos = remetentes_unicos | destinatarios_unicos
-    ordem_do_grafo = len(vertices_unicos)
+    unique_vertices = unique_senders | unique_recipients
+    graph_order = len(unique_vertices)
     
     # Método 3: Conta vértices isolados e adiciona aos vértices com arestas
-    qtd_isolados, vertices_isolados = get_isolated_vertices(grafo, todos_emails)
-    vertices_com_arestas = len(vertices_unicos)
-    ordem_de_isolados = vertices_com_arestas + qtd_isolados
+    isolated_count, isolated_vertices = get_isolated_vertices(graph, all_emails)
+    vertices_with_edges = len(unique_vertices)
+    order_with_isolated = vertices_with_edges + isolated_count
     
     # Retorna todas as contagens para comparação
     return {
-        "ordem_de_todos_emails": ordem_de_todos_emails,
-        "ordem_do_grafo": ordem_do_grafo,
-        "ordem_de_isolados": ordem_de_isolados,
-        "vertices_com_arestas": vertices_com_arestas,
-        "vertices_isolados": qtd_isolados
+        "order_from_all_emails": order_from_all_emails,
+        "graph_order": graph_order,
+        "order_with_isolated": order_with_isolated,
+        "vertices_with_edges": vertices_with_edges,
+        "isolated_vertices": isolated_count
     }
 
-def exibir_estatisticas_grafo():
+def display_graph_statistics():
     """
     Calcula e exibe várias estatísticas sobre o grafo de emails.
     
@@ -66,50 +66,50 @@ def exibir_estatisticas_grafo():
     isolados e os vertices com maior grau de entrada e saída.
     """
     print("Construindo grafo de emails...")
-    grafo, todos_emails = build_email_graph()
+    graph, all_emails = build_email_graph()
     
     print("\n=== ESTATÍSTICAS DO GRAFO ===\n")
     
     # Verifica a ordem do grafo usando múltiplos métodos
-    verificacao_ordem = verificar_ordem_grafo(grafo, todos_emails)
+    order_verification = check_graph_order(graph, all_emails)
     
     print("Verificação do número de vértices (ordem):")
-    print(f"  - Método 1 (todos_emails): {verificacao_ordem['ordem_de_todos_emails']}")
-    print(f"  - Método 2 (remetentes + destinatários): {verificacao_ordem['ordem_do_grafo']}")
-    print(f"  - Método 3 (com arestas + isolados): {verificacao_ordem['ordem_de_isolados']}")
-    print(f"  - Vértices com arestas: {verificacao_ordem['vertices_com_arestas']}")
-    print(f"  - Vértices isolados: {verificacao_ordem['vertices_isolados']}")
+    print(f"  - Método 1 (todos_emails): {order_verification['order_from_all_emails']}")
+    print(f"  - Método 2 (remetentes + destinatários): {order_verification['graph_order']}")
+    print(f"  - Método 3 (com arestas + isolados): {order_verification['order_with_isolated']}")
+    print(f"  - Vértices com arestas: {order_verification['vertices_with_edges']}")
+    print(f"  - Vértices isolados: {order_verification['isolated_vertices']}")
     print()
     
     # a. Número de vértices (ordem)
-    ordem = get_graph_order(grafo, todos_emails)
-    print(f"a. Número de vértices (ordem): {ordem}")
+    order = get_graph_order(graph, all_emails)
+    print(f"a. Número de vértices (ordem): {order}")
     
     # b. Número de arestas (tamanho)
-    tamanho = get_graph_size(grafo)
-    print(f"b. Número de arestas (tamanho): {tamanho}")
+    size = get_graph_size(graph)
+    print(f"b. Número de arestas (tamanho): {size}")
     
     # c. Número de vértices isolados
-    qtd_isolados, vertices_isolados = get_isolated_vertices(grafo, todos_emails)
-    print(f"c. Número de vértices isolados: {qtd_isolados}")
+    isolated_count, isolated_vertices = get_isolated_vertices(graph, all_emails)
+    print(f"c. Número de vértices isolados: {isolated_count}")
     
     # Imprime alguns exemplos de vértices isolados para verificação
-    if qtd_isolados > 0:
+    if isolated_count > 0:
         print(f"   Exemplos de vértices isolados (até 10):")
-        for i, no in enumerate(list(vertices_isolados)[:10], 1):
-            print(f"   {i}. {no}")
+        for i, node in enumerate(list(isolated_vertices)[:10], 1):
+            print(f"   {i}. {node}")
     
     # d. Top 20 indivíduos com maior grau de saída
     print("\nd. Top 20 indivíduos com maior grau de saída (número de emails enviados):")
-    top_saida = get_top_out_degrees(grafo, 20)
-    for i, (no, grau) in enumerate(top_saida, 1):
-        print(f"   {i:2d}. {no}: {grau}")
+    top_out = get_top_out_degrees(graph, 20)
+    for i, (node, degree) in enumerate(top_out, 1):
+        print(f"   {i:2d}. {node}: {degree}")
     
     # e. Top 20 indivíduos com maior grau de entrada
     print("\ne. Top 20 indivíduos com maior grau de entrada (número de emails recebidos):")
-    top_entrada = get_top_in_degrees(grafo, 20)
-    for i, (no, grau) in enumerate(top_entrada, 1):
-        print(f"   {i:2d}. {no}: {grau}")
+    top_in = get_top_in_degrees(graph, 20)
+    for i, (node, degree) in enumerate(top_in, 1):
+        print(f"   {i:2d}. {node}: {degree}")
 
 if __name__ == "__main__":
-    exibir_estatisticas_grafo()
+    display_graph_statistics()
