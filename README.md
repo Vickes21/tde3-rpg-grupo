@@ -5,7 +5,7 @@ Este projeto implementa um conjunto de ferramentas para análise de um grafo de 
 ## Requisitos
 
 - Python 3.6 ou superior
-- Conjunto de dados de emails no diretório `/home/hower/studies/2025/rpg/tde1-grupos/dataset`
+- Conjunto de dados de emails no diretório `dataset`
 
 ## Estrutura do Projeto
 
@@ -77,7 +77,7 @@ python distance_finder.py <email_inicial> <distancia_maxima>
 
 **Exemplo:**
 ```bash
-python distance_finder.py drew.fossum@enron.com 50
+python distance_finder.py drew.fossum@enron.com 2
 ```
 
 **Saída:**
@@ -121,7 +121,7 @@ Para uma análise completa do grafo de emails, você pode seguir este fluxo de t
 
 4. Explore os vértices próximos a um vertice específico:
    ```bash
-   python distance_finder.py drew.fossum@enron.com 50
+   python distance_finder.py drew.fossum@enron.com 2
    ```
 
 5. Calcule o diâmetro do grafo:

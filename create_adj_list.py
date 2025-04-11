@@ -6,9 +6,9 @@ def main():
     graph, all_emails = build_email_graph()
     
     # Save the adjacency list
-    output_file = "/home/hower/studies/2025/rpg/tde1-grupos/email_graph_adjacency_list.txt"
+    output_file = "email_graph_adjacency_list.txt"
     print(f"Saving adjacency list to {output_file}...")
-    save_adjacency_list(graph, output_file)
+    save_adjacency_list(graph, output_file, all_emails)
     
     print("Done!")
 

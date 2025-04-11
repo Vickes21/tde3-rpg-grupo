@@ -70,13 +70,14 @@ def dijkstra_with_path(graph, start_node):
     
     return distances, paths
 
-def calculate_graph_diameter(graph):
+def calculate_graph_diameter(graph, all_emails=None):
     """
     Calcula o diâmetro do grafo, que é o caminho mais longo entre
     qualquer par de vértices.
     
     Args:
         grafo: O grafo representado como uma lista de adjacência
+        all_emails: Conjunto opcional de todos os endereços de email (vértices)
         
     Returns:
         tuple: (diametro, caminho, origem, destino) onde:
@@ -94,10 +95,13 @@ def calculate_graph_diameter(graph):
     max_target = None
     
     # Contador para acompanhamento do progresso
-    total_nodes = len(graph)
+    total_active_nodes = len(graph)
     processed_nodes = 0
     
-    print(f"Calculando diâmetro para um grafo com {total_nodes} vertices...")
+    if all_emails:
+        print(f"Calculando diâmetro para um grafo com {total_active_nodes} vértices ativos (de um total de {len(all_emails)} endereços únicos)...")
+    else:
+        print(f"Calculando diâmetro para um grafo com {total_active_nodes} vértices...")
     
     # Para cada vertice no grafo, encontra os caminhos mais curtos para todos os outros vertices
     for source in graph:
@@ -124,9 +128,9 @@ def calculate_graph_diameter(graph):
         
         # Atualiza o progresso
         processed_nodes += 1
-        if processed_nodes % 10 == 0 or processed_nodes == total_nodes:
+        if processed_nodes % 10 == 0 or processed_nodes == total_active_nodes:
             elapsed_time = time.time() - start_time
-            print(f"Processados {processed_nodes}/{total_nodes} vertices ({processed_nodes/total_nodes*100:.1f}%) - Tempo decorrido: {elapsed_time:.2f}s")
+            print(f"Processados {processed_nodes}/{total_active_nodes} vertices ({processed_nodes/total_active_nodes*100:.1f}%) - Tempo decorrido: {elapsed_time:.2f}s")
     
     end_time = time.time()
     execution_time = end_time - start_time
@@ -179,7 +183,7 @@ def main():
     
     # Calcula o diâmetro do grafo
     print("Calculando diâmetro do grafo...")
-    diameter, path, source, target = calculate_graph_diameter(graph)
+    diameter, path, source, target = calculate_graph_diameter(graph, all_emails)
     
     # Calcula o tempo de execução
     execution_time = time.time() - start_time

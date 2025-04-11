@@ -16,14 +16,16 @@ import glob
 import heapq
 
 # Define o diretório do conjunto de dados
-DATASET_DIR = "/home/hower/studies/2025/rpg/tde1-grupos/dataset"
+current_dir = os.path.dirname(os.path.abspath(__file__))
+dataset_path = os.path.join(current_dir, 'dataset')
+DATASET_DIR = dataset_path
 
 def extract_email_addresses(line):
     """
     Extrai endereços de email de uma linha de texto.
     
     Args:
-        linha: A linha de texto a ser analisada
+        line: A linha de texto a ser analisada
         
     Returns:
         list: Lista de endereços de email encontrados na linha
@@ -155,7 +157,7 @@ def build_email_graph():
     
     return graph, all_emails
 
-def save_adjacency_list(graph, file_name):
+def save_adjacency_list(graph, file_name, all_emails=None):
     """
     Salva o grafo como uma lista de adjacência em um arquivo de texto.
     
@@ -166,6 +168,7 @@ def save_adjacency_list(graph, file_name):
         grafo: Dicionário representando o grafo, onde as chaves são os remetentes
                e os valores são dicionários com destinatários como chaves e pesos como valores.
         nome_arquivo: Caminho do arquivo onde a lista de adjacência será salva.
+        all_emails: Conjunto opcional de todos os endereços de email (vértices), incluindo nós isolados.
     """
     # Abre o arquivo no modo de escrita usando um gerenciador de contexto (with)
     with open(file_name, 'w') as file:
@@ -173,21 +176,30 @@ def save_adjacency_list(graph, file_name):
         file.write("# Lista de Adjacência do Grafo de Email\n")
         file.write("# Formato: remetente -> destinatário: peso\n\n")
         
-        # Ordena os remetentes em ordem alfabética para melhorar a legibilidade
-        for sender in sorted(graph.keys()):
-            file.write(f"Node: {sender}\n")
+        # Identifica todos os nós que precisam ser incluídos
+        nodes_to_include = set(graph.keys())
+        
+        # Se all_emails foi fornecido, adiciona os nós isolados
+        if all_emails:
+            nodes_to_include.update(all_emails)
+        
+        # Ordena os nós em ordem alfabética para melhorar a legibilidade
+        for node in sorted(nodes_to_include):
+            file.write(f"Node: {node}\n")
             
-            # Ordena os destinatários primeiro por peso (decrescente) e depois alfabeticamente
-            sorted_recipients = sorted(
-                graph[sender].items(),
-                key=lambda x: (-x[1], x[0])  # Ordena por peso (decrescente) e depois por destinatário (crescente)
-            )
+            # Se o nó está no grafo (não é isolado), escreve suas conexões
+            if node in graph:
+                # Ordena os destinatários primeiro por peso (decrescente) e depois alfabeticamente
+                sorted_recipients = sorted(
+                    graph[node].items(),
+                    key=lambda x: (-x[1], x[0])  # Ordena por peso (decrescente) e depois por destinatário (crescente)
+                )
+                
+                # Escreve cada conexão com seu respectivo peso
+                for recipient, weight in sorted_recipients:
+                    file.write(f"  -> {recipient}: {weight}\n")
             
-            # Escreve cada conexão com seu respectivo peso
-            for recipient, weight in sorted_recipients:
-                file.write(f"  -> {recipient}: {weight}\n")
-            
-            # Adiciona uma linha em branco entre diferentes remetentes para melhor organização
+            # Adiciona uma linha em branco entre diferentes nós para melhor organização
             file.write("\n")
 
 def get_graph_order(graph, all_emails):
