@@ -225,7 +225,7 @@ def get_graph_size(grafo):
 def get_isolated_vertices(grafo, todos_emails):
     """
     Obtém o número de vértices isolados no grafo.
-    Um nó isolado não tem arestas de entrada ou saída.
+    Um vertice isolado não tem arestas de entrada ou saída.
     
     Args:
         grafo: O grafo representado como uma lista de adjacência
@@ -252,21 +252,21 @@ def get_isolated_vertices(grafo, todos_emails):
 def get_top_out_degrees(grafo, n=20):
     """
     Obtém os N vértices com o maior grau de saída.
-    O grau de saída é o número de arestas de saída de um nó.
+    O grau de saída é o número de arestas de saída de um vertice.
     
     Args:
         grafo: O grafo representado como uma lista de adjacência
         n: Número de vértices principais a serem retornados
         
     Returns:
-        list: Lista de tuplas (nó, grau_saida) ordenada por grau_saida em ordem decrescente
+        list: Lista de tuplas (vertice, grau_saida) ordenada por grau_saida em ordem decrescente
     """
-    # Calcula o grau de saída para cada nó
+    # Calcula o grau de saída para cada vertice
     graus_saida = {}
     for remetente in grafo:
         graus_saida[remetente] = len(grafo[remetente])
     
-    # Ordena os nós por grau de saída em ordem decrescente
+    # Ordena os vertices por grau de saída em ordem decrescente
     top_graus_saida = sorted(graus_saida.items(), key=lambda x: (-x[1], x[0]))
     
     # Retorna os N principais
@@ -275,22 +275,22 @@ def get_top_out_degrees(grafo, n=20):
 def get_top_in_degrees(grafo, n=20):
     """
     Obtém os N vértices com o maior grau de entrada.
-    O grau de entrada é o número de arestas de entrada para um nó.
+    O grau de entrada é o número de arestas de entrada para um vertice.
     
     Args:
         grafo: O grafo representado como uma lista de adjacência
         n: Número de vértices principais a serem retornados
         
     Returns:
-        list: Lista de tuplas (nó, grau_entrada) ordenada por grau_entrada em ordem decrescente
+        list: Lista de tuplas (vertice, grau_entrada) ordenada por grau_entrada em ordem decrescente
     """
-    # Calcula o grau de entrada para cada nó
+    # Calcula o grau de entrada para cada vertice
     graus_entrada = Counter()
     for remetente in grafo:
         for destinatario in grafo[remetente]:
             graus_entrada[destinatario] += 1
     
-    # Ordena os nós por grau de entrada em ordem decrescente
+    # Ordena os vertices por grau de entrada em ordem decrescente
     top_graus_entrada = sorted(graus_entrada.items(), key=lambda x: (-x[1], x[0]))
     
     # Retorna os N principais
@@ -298,48 +298,48 @@ def get_top_in_degrees(grafo, n=20):
 
 def nodes_within_distance(grafo, no_inicial, distancia_maxima):
     """
-    Encontra todos os nós que estão dentro de uma distância especificada a partir de um nó inicial.
+    Encontra todos os vertices que estão dentro de uma distância especificada a partir de um vertice inicial.
     Usa o algoritmo de Dijkstra para encontrar os caminhos mais curtos.
     
     Args:
         grafo: O grafo representado como uma lista de adjacência
-        no_inicial: O nó inicial
+        no_inicial: O vertice inicial
         distancia_maxima: Distância máxima (soma dos pesos ao longo do caminho)
         
     Returns:
-        dict: Dicionário mapeando nó -> distância a partir do no_inicial
-              Inclui apenas nós dentro da distancia_maxima
+        dict: Dicionário mapeando vertice -> distância a partir do no_inicial
+              Inclui apenas vertices dentro da distancia_maxima
     """
-    # Inicializa distâncias com infinito para todos os nós
+    # Inicializa distâncias com infinito para todos os vertices
     distancias = {no_inicial: 0}
     
     # Fila de prioridade para o algoritmo de Dijkstra
-    # Cada entrada é (distância, nó)
+    # Cada entrada é (distância, vertice)
     fila_prioridade = [(0, no_inicial)]
     
-    # Nós dentro da distância máxima
+    # vertices dentro da distância máxima
     nos_dentro_distancia = {}
     
-    # Processa nós em ordem crescente de distância
+    # Processa vertices em ordem crescente de distância
     while fila_prioridade:
-        # Obtém o nó com a menor distância
+        # Obtém o vertice com a menor distância
         distancia_atual, no_atual = heapq.heappop(fila_prioridade)
         
-        # Se já encontramos um caminho mais curto para este nó, ignoramos
+        # Se já encontramos um caminho mais curto para este vertice, ignoramos
         if no_atual in nos_dentro_distancia:
             continue
         
-        # Adiciona este nó ao resultado se estiver dentro da distância máxima
+        # Adiciona este vertice ao resultado se estiver dentro da distância máxima
         if distancia_atual <= distancia_maxima:
             nos_dentro_distancia[no_atual] = distancia_atual
         else:
             # Se a distância atual exceder a distância máxima, podemos parar
-            # porque todos os nós subsequentes na fila de prioridade terão distâncias ainda maiores
+            # porque todos os vertices subsequentes na fila de prioridade terão distâncias ainda maiores
             break
         
-        # Verifica todos os vizinhos do nó atual
+        # Verifica todos os vizinhos do vertice atual
         for vizinho, peso in grafo.get(no_atual, {}).items():
-            # Calcula a distância para o vizinho através do nó atual
+            # Calcula a distância para o vizinho através do vertice atual
             distancia = distancia_atual + peso
             
             # Se o vizinho ainda não foi processado e a distância está dentro do limite

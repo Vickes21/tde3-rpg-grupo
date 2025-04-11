@@ -5,7 +5,7 @@ Verificador de Ciclo Euleriano
 Este script verifica se um grafo é Euleriano (possui um ciclo Euleriano).
 Para um grafo direcionado ser Euleriano:
 1. Todos os vértices com grau não-zero devem pertencer a um único componente fortemente conectado
-2. Para cada nó, o grau de entrada deve ser igual ao grau de saída
+2. Para cada vertice, o grau de entrada deve ser igual ao grau de saída
 
 Uso:
     python eulerian_checker.py
@@ -20,7 +20,7 @@ def check_eulerian(graph):
     
     Para um grafo direcionado ser Euleriano:
     1. Todos os vértices com grau não-zero devem pertencer a um único componente fortemente conectado
-    2. Para cada nó, o grau de entrada deve ser igual ao grau de saída
+    2. Para cada vertice, o grau de entrada deve ser igual ao grau de saída
     
     Args:
         graph: O grafo representado como uma lista de adjacência
@@ -32,7 +32,7 @@ def check_eulerian(graph):
     # Obtém todos os vértices que têm arestas de entrada ou saída
     active_vertices = set()
     
-    # Calcula o grau de entrada para cada nó
+    # Calcula o grau de entrada para cada vertice
     in_degrees = Counter()
     for sender in graph:
         active_vertices.add(sender)
@@ -40,7 +40,7 @@ def check_eulerian(graph):
             active_vertices.add(recipient)
             in_degrees[recipient] += weight
     
-    # Calcula o grau de saída para cada nó
+    # Calcula o grau de saída para cada vertice
     out_degrees = {}
     for sender in graph:
         out_degrees[sender] = sum(graph[sender].values())
@@ -141,7 +141,7 @@ def check_eulerian_cycle(graph):
     
     if is_eulerian:
         print("O grafo é Euleriano (possui um ciclo Euleriano).")
-        print("\nUm ciclo Euleriano é um caminho que percorre cada aresta exatamente uma vez e retorna ao nó inicial.")
+        print("\nUm ciclo Euleriano é um caminho que percorre cada aresta exatamente uma vez e retorna ao vertice inicial.")
         print("Isso significa que você pode traçar o grafo inteiro sem levantar o lápis e voltar ao ponto de partida.")
     else:
         print("O grafo NÃO é Euleriano.")
@@ -151,9 +151,9 @@ def check_eulerian_cycle(graph):
         
         print("\nExplicação das condições para um grafo direcionado ser Euleriano:")
         print("1. Todos os vértices com grau não-zero devem pertencer a um único componente fortemente conectado.")
-        print("   Isso significa que você pode alcançar qualquer nó a partir de qualquer outro nó no grafo.")
-        print("2. Para cada nó, o grau de entrada deve ser igual ao grau de saída.")
-        print("   Isso significa que cada nó deve ter o mesmo número de arestas de entrada e saída.")
+        print("   Isso significa que você pode alcançar qualquer vertice a partir de qualquer outro vertice no grafo.")
+        print("2. Para cada vertice, o grau de entrada deve ser igual ao grau de saída.")
+        print("   Isso significa que cada vertice deve ter o mesmo número de arestas de entrada e saída.")
     
     return is_eulerian, unsatisfied_conditions
 

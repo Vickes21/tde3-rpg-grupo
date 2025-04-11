@@ -63,7 +63,7 @@ def exibir_estatisticas_grafo():
     
     Esta função constrói o grafo de emails e calcula diversas métricas
     importantes para análise, como número de vértices, arestas, vértices
-    isolados e os nós com maior grau de entrada e saída.
+    isolados e os vertices com maior grau de entrada e saída.
     """
     print("Construindo grafo de emails...")
     grafo, todos_emails = build_email_graph()

@@ -52,7 +52,7 @@ python graph_statistics.py
 
 Este script verifica se o grafo é Euleriano (possui um ciclo Euleriano). Para um grafo direcionado ser Euleriano:
 1. Todos os vértices com grau não-zero devem pertencer a um único componente fortemente conectado
-2. Para cada nó, o grau de entrada deve ser igual ao grau de saída
+2. Para cada vertice, o grau de entrada deve ser igual ao grau de saída
 
 ```bash
 python eulerian_checker.py
@@ -65,14 +65,14 @@ python eulerian_checker.py
 
 ### 4. Busca por Distância
 
-Este script encontra todos os vértices dentro de uma distância especificada a partir de um nó inicial. Utiliza o algoritmo de Dijkstra para encontrar os caminhos mais curtos.
+Este script encontra todos os vértices dentro de uma distância especificada a partir de um vertice inicial. Utiliza o algoritmo de Dijkstra para encontrar os caminhos mais curtos.
 
 ```bash
 python distance_finder.py <email_inicial> <distancia_maxima>
 ```
 
 **Parâmetros:**
-- `<email_inicial>`: Endereço de email do nó inicial (ex: john.doe@example.com)
+- `<email_inicial>`: Endereço de email do vertice inicial (ex: john.doe@example.com)
 - `<distancia_maxima>`: Distância máxima para busca (valor numérico)
 
 **Exemplo:**
@@ -82,7 +82,7 @@ python distance_finder.py drew.fossum@enron.com 50
 
 **Saída:**
 - Lista de todos os vértices (endereços de email) que estão dentro da distância especificada
-- Distância de cada vértice em relação ao nó inicial
+- Distância de cada vértice em relação ao vertice inicial
 - Tempo de execução da busca
 
 ### 5. Cálculo do Diâmetro do Grafo
@@ -95,9 +95,9 @@ python graph_diameter.py
 
 **Saída:**
 - Valor do diâmetro do grafo
-- Caminho que representa o diâmetro (sequência de nós)
-- Nó de origem e nó de destino do caminho
-- Comprimento do caminho (número de nós)
+- Caminho que representa o diâmetro (sequência de vertices)
+- vertice de origem e vertice de destino do caminho
+- Comprimento do caminho (número de vertices)
 - Tempo de execução do cálculo
 
 ## Exemplo de Fluxo de Trabalho
@@ -119,7 +119,7 @@ Para uma análise completa do grafo de emails, você pode seguir este fluxo de t
    python eulerian_checker.py
    ```
 
-4. Explore os vértices próximos a um nó específico:
+4. Explore os vértices próximos a um vertice específico:
    ```bash
    python distance_finder.py drew.fossum@enron.com 50
    ```
